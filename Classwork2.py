@@ -1,69 +1,58 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import multivariate_normal
 
-# ========================
-# 1. PARAMETERS (ตามสไลด์)
-# ========================
+# =========================
+# 1. กำหนด mean และ covariance
+# =========================
 
-mean_A = np.array([0.0, 0.0])
-cov_A  = np.array([[0.10, 0.00],
-                   [0.00, 0.75]])
+# จุดกลางวงกลมแดง (class a)
+mean1 = np.array([-3.0, 5.0])
 
-mean_B = np.array([3.2, 0.0])
-cov_B  = np.array([[0.75, 0.00],
-                   [0.00, 0.10]])
+# จุดกลางวงกลมน้ำเงิน (class b)
+mean2 = np.array([ 3.0, 5.0])
 
-N = 300    # จำนวนข้อมูลต่อคลาส
+# ใช้ covariance เป็น identity -> ก้อนจะเป็นวงกลม
+cov = np.array([[1.0, 0.0],
+                [0.0, 1.0]])
 
+# =========================
+# 2. สุ่มจุดจาก Gaussian
+# =========================
+N = 200  # จำนวนจุดต่อคลาส
 
-# ========================
-# 2. GENERATE DATA
-# ========================
+pts1 = np.random.multivariate_normal(mean1, cov, size=N)
+pts2 = np.random.multivariate_normal(mean2, cov, size=N)
 
-ptsA = np.random.multivariate_normal(mean_A, cov_A, N)
-ptsB = np.random.multivariate_normal(mean_B, cov_B, N)
+# =========================
+# 3. วาดรูป
+# =========================
+plt.figure(figsize=(8, 6))
 
+plt.scatter(pts1[:, 0], pts1[:, 1],
+            marker='o', s=50, alpha=0.5,
+            color='red', label='a')
 
-# ========================
-# 3. BAYES DECISION BOUNDARY
-# ========================
+plt.scatter(pts2[:, 0], pts2[:, 1],
+            marker='o', s=50, alpha=0.5,
+            color='blue', label='b')
 
-# grid (ช่วงกว้างเพื่อเห็นเส้นชัด)
-x = np.linspace(-2, 6.5, 400)
-y = np.linspace(-3, 3, 400)
-xx, yy = np.meshgrid(x, y)
+# --- 🔥 เพิ่มเส้นแกน Y (x = 0) แบบทึบ สีแดง ---
+plt.axvline(x=0, color='red', linewidth=3)
 
-# combine grid into 2D points
-pos = np.dstack((xx, yy))
+plt.axis('equal')
 
-# likelihoods
-pA = multivariate_normal(mean_A, cov_A).pdf(pos)
-pB = multivariate_normal(mean_B, cov_B).pdf(pos)
+plt.xlabel('X')
+plt.ylabel('Y')
 
-# priors = 0.5 each
-posterior_A = pA * 0.5
-posterior_B = pB * 0.5
+# กำหนดช่วงแกนให้เหมือนที่คุณวาด
+plt.xlim(-6, 6)
+plt.ylim(-1, 10)
 
-# decision boundary = where posterior_A = posterior_B
-boundary = posterior_A - posterior_B
-
-
-# ========================
-# 4. PLOT
-# ========================
-
-plt.figure(figsize=(10,6))
-
-plt.scatter(ptsA[:,0], ptsA[:,1], c='red', alpha=0.5, label='A')
-plt.scatter(ptsB[:,0], ptsB[:,1], c='blue', alpha=0.5, label='B')
-
-# contour where difference = 0  → decision boundary
-plt.contour(xx, yy, boundary, levels=[0], colors='purple', linewidths=2)
-
-plt.grid(True)
-plt.xlabel("X1")
-plt.ylabel("X2")
 plt.legend()
-plt.title("Bayes Decision Boundary Between Class A and Class B")
+plt.grid(True)
+
+ax = plt.gca()
+ax.set_aspect('equal', adjustable='box')
+
+plt.title("Two Gaussian Blobs at (-3,5) and (3,5) with Red Y-axis Divider")
 plt.show()
